@@ -1,0 +1,162 @@
+package router
+
+import (
+	"auth-service/config"
+	"auth-service/internal/application/dto"
+	"auth-service/internal/application/service"
+	"auth-service/internal/application/usecase"
+	"auth-service/internal/infrastructure/keycloack"
+	"auth-service/internal/infrastructure/persistence/mysql"
+	"auth-service/internal/presentation/http/handler"
+	"auth-service/internal/presentation/http/middlewares"
+	pkgAppHttp "auth-service/pkg/app_http"
+	"context"
+	"errors"
+	"fmt"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	ut "github.com/go-playground/universal-translator"
+	"github.com/go-playground/validator/v10"
+	"github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
+)
+
+func NewRouter(
+	cfg config.Config,
+	txManager *mysql.TransactionManager,
+	db *gorm.DB,
+	validator *validator.Validate,
+	httpClient *pkgAppHttp.AppHttp,
+	ut ut.Translator,
+) *mux.Router {
+	router := mux.NewRouter()
+	router.Use(middlewares.CORS, middlewares.JSON)
+
+	// repository
+	userRepo := mysql.NewUserRepository(db)
+
+	// service infra
+	keycloakService := keycloack.NewKeycloakService(
+		httpClient,
+		cfg.Keycloak,
+	)
+	keycloakAdapter := keycloack.NewKeycloakAdapter(keycloakService)
+
+	// service
+	userService := service.NewUserService(
+		userRepo,
+		txManager,
+		cfg,
+		keycloakAdapter,
+	)
+
+	// usecase
+	userUseCase := usecase.NewCreateUserUseCase(userService)
+	listUserUseCase := usecase.NewListUserUseCase(userRepo)
+	loginUseCase := usecase.NewLoginUserUseCase(userService, userRepo)
+	refreshTokenUseCase := usecase.NewRefreshTokenUserUserUseCase(userService)
+	getUserUseCase := usecase.NewDetailUserUseCase(userRepo)
+	updateUserUseCase := usecase.NewUpdateUserUseCase(userService)
+	deleteUserUseCase := usecase.NewDeleteUserUseCase(userService)
+
+	// handler
+	createUserHandler := handler.NewCreateUserHandler(userUseCase)
+	listUserHandler := handler.NewListUserHandler(listUserUseCase)
+	loginUserHandler := handler.NewLoginUserHandler(loginUseCase)
+	refreshTokenUserHandler := handler.NewRefreshTokenUserHandler(refreshTokenUseCase)
+	getUserHandler := handler.NewGetUserHandler(getUserUseCase)
+	updateUserHandler := handler.NewUpdateUserHandler(updateUserUseCase)
+	deleteUserHandler := handler.NewDeleteUserHandler(deleteUserUseCase)
+
+	// api prefix
+	v1 := router.PathPrefix("/api/v1").Subrouter()
+	users := v1.PathPrefix("/users").Subrouter()
+
+	// routes V1
+	users.Handle(
+		"",
+		middlewares.ValidateRequestBody[dto.CreateUserRequest](validator, ut)(
+			http.HandlerFunc(createUserHandler.Execute),
+		),
+	).Methods(http.MethodPost, http.MethodOptions)
+
+	users.HandleFunc("", listUserHandler.Execute).Methods(http.MethodGet, http.MethodOptions)
+
+	users.HandleFunc("/{id}", getUserHandler.Execute).Methods(http.MethodGet, http.MethodOptions)
+
+	users.Handle(
+		"/{id}",
+		middlewares.ValidateRequestBody[dto.UpdateUserRequest](validator, ut)(
+			http.HandlerFunc(updateUserHandler.Execute),
+		),
+	).Methods(http.MethodPut, http.MethodOptions)
+
+	users.HandleFunc("/{id}", deleteUserHandler.Execute).Methods(http.MethodDelete, http.MethodOptions)
+
+	users.Handle(
+		"/login",
+		middlewares.ValidateRequestBody[dto.LoginUserRequest](validator, ut)(
+			http.HandlerFunc(loginUserHandler.Execute),
+		),
+	).Methods(http.MethodPost, http.MethodOptions)
+
+	users.Handle(
+		"/refresh-token",
+		middlewares.ValidateRequestBody[dto.RefreshTokenUserDTO](validator, ut)(
+			http.HandlerFunc(refreshTokenUserHandler.Execute),
+		),
+	).Methods(http.MethodPost, http.MethodOptions)
+	return router
+}
+
+func RunHTTPServer(
+	router *mux.Router,
+	port string,
+	logger *logrus.Logger,
+) error {
+	server := &http.Server{
+		Addr:              fmt.Sprintf(":%s", port),
+		Handler:           handlers.CompressHandler(router),
+		ReadHeaderTimeout: 5 * time.Second,
+	}
+
+	// Channel to listen for OS signals
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
+	// Channel to capture server errors
+	serverErrCh := make(chan error, 1)
+
+	// Start server in goroutine
+	go func() {
+		logger.Infof("HTTP server starting on port %s", port)
+		if err := server.ListenAndServe(); err != nil && !errors.Is(http.ErrServerClosed, err) {
+			serverErrCh <- err
+		}
+	}()
+
+	select {
+	case sig := <-quit:
+		logger.Infof("Received OS signal: %s, shutting down...", sig)
+	case err := <-serverErrCh:
+		return fmt.Errorf("HTTP server error: %w", err)
+	}
+
+	// Graceful shutdown with timeout
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := server.Shutdown(ctx); err != nil {
+		logger.Errorf("Server forced to shutdown: %v", err)
+		return err
+	}
+
+	logger.Info("Server exited gracefully")
+	return nil
+}
