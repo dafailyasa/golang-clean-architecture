@@ -7,10 +7,10 @@ Designed following **Clean Architecture** and **Domain-Driven Design (DDD)** pri
 ## 🏗 Architecture 
 
 This service enforces the **Clean Architecture** structure:
-- **Domain Layer (`internal/domain`)**: Core business entities (`User`), Value Objects (`Email`), and domain policies.
-- **Application Layer (`internal/application`)**: UseCases encapsulating application-specific business rules.
-- **Infrastructure Layer (`internal/infrastructure`)**: Outermost layer dictating how data persists (MySQL with GORM) and identity provider mappings (Keycloak).
-- **Presentation Layer (`internal/presentation`)**: HTTP interface resolving delivery mechanisms, JSON parsing, API routing via Gorilla Mux, and middleware chaining.
+- **Domain Layer (`domain/`)**: Core business entities, value objects, and domain policies. Organized into `entity`, `valueobject`, `aggregate`, `repository`, and `service`.
+- **Application Layer (`application/`)**: UseCases encapsulating application-specific business rules and data transfer objects.
+- **Infrastructure Layer (`infrastructure/`)**: Outermost layer for data persistence (MySQL with GORM), identity provider adapters (Keycloak), and configurations.
+- **Delivery Layer (`delivery/`)**: Transport mechanism (HTTP) resolving API routing via Gorilla Mux and middleware chaining.
 
 ## 🚀 Tech Stack
 
@@ -37,27 +37,27 @@ This service enforces the **Clean Architecture** structure:
 
 ```text
 auth-service/
+├── application/                    # Application UseCases & Port Definitions
+│   ├── dto/                        # Data Transfer Objects
+│   ├── port/                       # Interface abstraction (DB/IdentityProvider)
+│   └── usecase/                    # System boundaries defining explicit features
 ├── cmd/                            # Main application entry point
 ├── config/                         # Configuration loading & environmental binding
-├── internal/                       # Private application & domain code
-│   ├── application/                # Application UseCases & Port Definitions
-│   │   ├── dto/                    # Data Transfer Objects
-│   │   ├── port/                   # Interface abstraction (DB/IdentityProvider)
-│   │   ├── service/                # Logic adapting application & domain
-│   │   └── usecase/                # System boundaries defining explicit features
-│   ├── domain/                     # Core Business Logic & Enterprise patterns
-│   ├── infrastructure/             # Concrete Implementations mapped to ports
-│   │   ├── keycloack/              # Keycloak Identity Provider integration
-│   │   └── persistence/mysql/      # Data schema bindings & migrations
-│   └── presentation/               # HTTP Interface logic mapping JSON/REST
-│       ├── http/handler/           # Delivery implementation (Controllers)
-│       ├── http/middlewares/       # Intercepts mappings (CORS, Validations)
-│       └── http/router/            # Aggressive URI bounding & Prefix grouping
-└── pkg/                            # Shared utilities and helpers logic
-    ├── app_http/                   # Internal standard Resty/HTTP wrappers
-    ├── errors/                     # Standalone structured error abstractions
-    ├── pagination/                 # Generic isolated HTTP pagination handling
-    └── response/                   # REST Standardized JSON response formatting
+├── delivery/                       # Transport Layer (HTTP Interface)
+│   ├── http/handler/               # Delivery implementation (Controllers)
+│   ├── http/middlewares/           # Intercepts mappings (CORS, Validations)
+│   └── http/router/                # URI bounding & Prefix grouping
+├── domain/                         # Core Business Logic & Enterprise patterns
+│   ├── aggregate/                  # Aggregate Roots
+│   ├── entity/                     # Domain Entities
+│   ├── repository/                 # Domain Repository Interfaces
+│   ├── service/                    # Domain Services
+│   └── valueobject/                # Value Objects (Email, Status)
+├── infrastructure/                 # Concrete Implementations
+│   ├── keycloack/                  # Keycloak Identity Provider integration
+│   ├── persistence/mysql/          # Data schema bindings & migrations
+├── pkg/                            # Shared utilities and helpers logic
+└── test/                           # Integration and E2E tests
 ```
 
 ## ⚙️ Setup and Installation
