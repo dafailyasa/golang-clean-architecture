@@ -2,8 +2,8 @@ package usecase
 
 import (
 	"auth-service/domain/service"
-
-	"auth-service/application/dto"
+	"auth-service/delivery/http/request"
+	"auth-service/delivery/http/response"
 
 	"context"
 )
@@ -16,7 +16,7 @@ func NewUpdateUserUseCase(userService service.Service) *UpdateUserUseCase {
 	return &UpdateUserUseCase{userService: userService}
 }
 
-func (uc *UpdateUserUseCase) Execute(ctx context.Context, id uint, req *dto.UpdateUserRequest) (*dto.UserResponse, error) {
+func (uc *UpdateUserUseCase) Execute(ctx context.Context, id uint, req *request.UpdateUserRequest) (*response.UserResponse, error) {
 	u, err := uc.userService.UpdateUser(
 		ctx,
 		id,
@@ -31,5 +31,5 @@ func (uc *UpdateUserUseCase) Execute(ctx context.Context, id uint, req *dto.Upda
 		return nil, err
 	}
 
-	return dto.NewUserResponse(u), nil
+	return response.NewUserResponse(u), nil
 }

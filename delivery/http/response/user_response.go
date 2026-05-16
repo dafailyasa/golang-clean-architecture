@@ -1,10 +1,8 @@
-package dto
+package response
 
 import (
 	"auth-service/domain/enum"
-
 	"auth-service/domain/aggregate"
-
 	"time"
 )
 

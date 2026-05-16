@@ -1,13 +1,9 @@
-package dto
-
-type LoginUserRequest struct {
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required,password"`
-}
+package response
 
 type UserLoginData struct {
 	FullName string `json:"fullName"`
 }
+
 type LoginUserResponse struct {
 	AccessToken  string        `json:"accessToken"`
 	RefreshToken string        `json:"refreshToken"`

@@ -2,8 +2,8 @@ package usecase
 
 import (
 	"auth-service/domain/service"
-
-	"auth-service/application/dto"
+	"auth-service/delivery/http/request"
+	"auth-service/delivery/http/response"
 
 	"context"
 )
@@ -18,11 +18,11 @@ func NewRefreshTokenUserUserUseCase(userService service.Service) *RefreshTokenUs
 	}
 }
 
-func (uc *RefreshTokenUserUserUseCase) Execute(ctx context.Context, body *dto.RefreshTokenUserDTO) (*dto.LoginUserResponse, error) {
+func (uc *RefreshTokenUserUserUseCase) Execute(ctx context.Context, body *request.RefreshTokenRequest) (*response.LoginUserResponse, error) {
 	u, accessToken, refreshToken, err := uc.userService.RefreshToken(ctx, body.RefreshToken)
 	if err != nil {
 		return nil, err
 	}
 
-	return dto.NewLoginUserResponse(*accessToken, *refreshToken, u.GetFullName()), nil
+	return response.NewLoginUserResponse(*accessToken, *refreshToken, u.GetFullName()), nil
 }

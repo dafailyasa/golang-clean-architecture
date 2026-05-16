@@ -3,12 +3,11 @@ package router
 import (
 	"auth-service/domain/service"
 
-	"auth-service/application/dto"
-	"auth-service/config"
-
 	"auth-service/application/usecase"
+	"auth-service/config"
 	"auth-service/delivery/http/handler"
 	"auth-service/delivery/http/middlewares"
+	"auth-service/delivery/http/request"
 	"auth-service/infrastructure/keycloack"
 	"auth-service/infrastructure/persistence/mysql"
 	pkgAppHttp "auth-service/pkg/app_http"
@@ -100,14 +99,14 @@ func NewRouter(
 
 	users.Handle(
 		"/login",
-		middlewares.ValidateRequestBody[dto.LoginUserRequest](validator, ut)(
+		middlewares.ValidateRequestBody[request.LoginUserRequest](validator, ut)(
 			http.HandlerFunc(loginUserHandler.Execute),
 		),
 	).Methods(http.MethodPost)
 
 	users.Handle(
 		"/refresh-token",
-		middlewares.ValidateRequestBody[dto.RefreshTokenUserDTO](validator, ut)(
+		middlewares.ValidateRequestBody[request.RefreshTokenRequest](validator, ut)(
 			http.HandlerFunc(refreshTokenHandler.Execute),
 		),
 	).Methods(http.MethodPost)
@@ -118,7 +117,7 @@ func NewRouter(
 
 	privateUsers.Handle(
 		"",
-		middlewares.ValidateRequestBody[dto.CreateUserRequest](validator, ut)(
+		middlewares.ValidateRequestBody[request.CreateUserRequest](validator, ut)(
 			http.HandlerFunc(createUserHandler.Execute),
 		),
 	).Methods(http.MethodPost)
@@ -135,7 +134,7 @@ func NewRouter(
 
 	privateUsers.Handle(
 		"/{id}",
-		middlewares.ValidateRequestBody[dto.UpdateUserRequest](validator, ut)(
+		middlewares.ValidateRequestBody[request.UpdateUserRequest](validator, ut)(
 			http.HandlerFunc(updateUserHandler.Execute),
 		),
 	).Methods(http.MethodPut)

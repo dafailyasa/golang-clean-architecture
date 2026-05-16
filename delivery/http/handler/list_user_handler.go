@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"auth-service/application/dto"
 	"auth-service/application/usecase"
+	"auth-service/delivery/http/request"
 	pkgResponse "auth-service/pkg/response"
 	"net/http"
 )
@@ -18,7 +18,7 @@ func NewListUserHandler(listUserUseCase *usecase.ListUserUseCase) *ListUserHandl
 func (h *ListUserHandler) Execute(resp http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 
-	reqQuery := dto.NewListUserFilterRequest()
+	reqQuery := request.NewListUserFilterRequest()
 	if err := reqQuery.Validate(req); err != nil {
 		pkgResponse.ErrorWithCode(resp, http.StatusUnprocessableEntity, "failed to validate request query", err)
 		return

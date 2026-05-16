@@ -11,19 +11,19 @@ import (
 	"net/http"
 )
 
-type KeycloakService struct {
+type keycloakService struct {
 	HttpClient  *pkgHttp.AppHttp
 	KeycloakCfg config.KeycloakConfig
 }
 
-func NewKeycloakService(httpClient *pkgHttp.AppHttp, keycloakCfg config.KeycloakConfig) *KeycloakService {
-	return &KeycloakService{
+func NewKeycloakService(httpClient *pkgHttp.AppHttp, keycloakCfg config.KeycloakConfig) KeycloackService {
+	return keycloakService{
 		HttpClient:  httpClient,
 		KeycloakCfg: keycloakCfg,
 	}
 }
 
-func (s *KeycloakService) GetAccessToken(ctx context.Context, email, password, clientID, grantType, scope string) (*AccessTokenResponseDTO, error) {
+func (s keycloakService) GetAccessToken(ctx context.Context, email, password, clientID, grantType, scope string) (*AccessTokenResponseDTO, error) {
 	body := AccessTokenDTO{
 		Username:     email,
 		Password:     password,
@@ -66,7 +66,7 @@ func (s *KeycloakService) GetAccessToken(ctx context.Context, email, password, c
 	return &res, nil
 }
 
-func (s *KeycloakService) RefreshToken(ctx context.Context, refreshToken string) (*AccessTokenResponseDTO, error) {
+func (s keycloakService) RefreshToken(ctx context.Context, refreshToken string) (*AccessTokenResponseDTO, error) {
 	body := RefreshTokenDTO{
 		ClientID:     s.KeycloakCfg.ClientID,
 		ClientSecret: s.KeycloakCfg.ClientSecret,
@@ -104,7 +104,7 @@ func (s *KeycloakService) RefreshToken(ctx context.Context, refreshToken string)
 	return &res, nil
 }
 
-func (s *KeycloakService) CreateUser(ctx context.Context, body RegisterUserDTO) (keycloakUUID string, err error) {
+func (s keycloakService) CreateUser(ctx context.Context, body RegisterUserDTO) (keycloakUUID string, err error) {
 	tokenRes, err := s.GetAccessToken(ctx,
 		s.KeycloakCfg.AdminKeycloak.Email,
 		s.KeycloakCfg.AdminKeycloak.Password,
@@ -146,7 +146,7 @@ func (s *KeycloakService) CreateUser(ctx context.Context, body RegisterUserDTO) 
 	return keycloakUUID, nil
 }
 
-func (s *KeycloakService) GetUserInfo(ctx context.Context, accessToken string) (*UserInfoResponseDTO, error) {
+func (s keycloakService) GetUserInfo(ctx context.Context, accessToken string) (*UserInfoResponseDTO, error) {
 	var res UserInfoResponseDTO
 	httpResp, err := s.HttpClient.DoHttpRequest(ctx, pkgHttp.Request{
 		Method: http.MethodGet,
@@ -170,7 +170,7 @@ func (s *KeycloakService) GetUserInfo(ctx context.Context, accessToken string) (
 	return &res, nil
 }
 
-func (s *KeycloakService) UpdateUser(ctx context.Context, keycloakUUID string, body UpdateUserDTO) error {
+func (s keycloakService) UpdateUser(ctx context.Context, keycloakUUID string, body UpdateUserDTO) error {
 	tokenRes, err := s.GetAccessToken(ctx,
 		s.KeycloakCfg.AdminKeycloak.Email,
 		s.KeycloakCfg.AdminKeycloak.Password,
@@ -207,7 +207,7 @@ func (s *KeycloakService) UpdateUser(ctx context.Context, keycloakUUID string, b
 	return nil
 }
 
-func (s *KeycloakService) DeleteUser(ctx context.Context, keycloakUUID string) error {
+func (s keycloakService) DeleteUser(ctx context.Context, keycloakUUID string) error {
 	tokenRes, err := s.GetAccessToken(ctx,
 		s.KeycloakCfg.AdminKeycloak.Email,
 		s.KeycloakCfg.AdminKeycloak.Password,

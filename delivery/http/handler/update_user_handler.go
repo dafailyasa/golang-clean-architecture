@@ -1,9 +1,9 @@
 package handler
 
 import (
-	"auth-service/application/dto"
 	"auth-service/application/usecase"
 	"auth-service/delivery/http/middlewares"
+	"auth-service/delivery/http/request"
 	"auth-service/pkg/helpers"
 	pkgResponse "auth-service/pkg/response"
 	"net/http"
@@ -29,7 +29,7 @@ func (h *UpdateUserHandler) Execute(resp http.ResponseWriter, req *http.Request)
 		pkgResponse.Error(resp, "failed to update user", err)
 		return
 	}
-	body := ctx.Value(middlewares.BodyKey).(dto.UpdateUserRequest)
+	body := ctx.Value(middlewares.BodyKey).(request.UpdateUserRequest)
 
 	data, err := h.updateUserUseCase.Execute(ctx, parsedID, &body)
 	if err != nil {

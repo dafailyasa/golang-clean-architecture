@@ -1,4 +1,4 @@
-package dto
+package request
 
 import (
 	pkgPagination "auth-service/pkg/pagination"

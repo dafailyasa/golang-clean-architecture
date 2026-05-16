@@ -1,5 +1,5 @@
-package dto
+package request
 
-type RefreshTokenUserDTO struct {
+type RefreshTokenRequest struct {
 	RefreshToken string `json:"refreshToken" validate:"required,jwtToken"`
 }

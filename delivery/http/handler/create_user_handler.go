@@ -1,9 +1,9 @@
 package handler
 
 import (
-	"auth-service/application/dto"
 	"auth-service/application/usecase"
 	"auth-service/delivery/http/middlewares"
+	"auth-service/delivery/http/request"
 	pkgResponse "auth-service/pkg/response"
 	"net/http"
 )
@@ -20,7 +20,7 @@ func NewCreateUserHandler(createUserUseCase *usecase.CreateUserUseCase) *CreateU
 
 func (h *CreateUserHandler) Execute(resp http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
-	body := ctx.Value(middlewares.BodyKey).(dto.CreateUserRequest)
+	body := ctx.Value(middlewares.BodyKey).(request.CreateUserRequest)
 
 	data, err := h.createUserUseCase.Execute(ctx, &body)
 	if err != nil {

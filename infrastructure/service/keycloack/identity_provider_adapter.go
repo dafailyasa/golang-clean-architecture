@@ -8,10 +8,10 @@ import (
 )
 
 type KeycloakAdapter struct {
-	svc *KeycloakService
+	svc KeycloackService
 }
 
-func NewKeycloakAdapter(svc *KeycloakService) service.AuthProvider {
+func NewKeycloakAdapter(svc KeycloackService) service.AuthProvider {
 	return &KeycloakAdapter{svc: svc}
 }
 

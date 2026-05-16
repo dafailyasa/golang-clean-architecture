@@ -20,15 +20,15 @@ func ValidateRequestBody[T any](
 	trans ut.Translator,
 ) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			var body T
 
-			decoder := json.NewDecoder(req.Body)
+			decoder := json.NewDecoder(r.Body)
 			decoder.DisallowUnknownFields()
 
 			if err := decoder.Decode(&body); err != nil {
 				pkgResponse.ErrorWithCode(
-					resp,
+					w,
 					http.StatusBadRequest,
 					"unsupported media type",
 					pkgErrors.NewBusinessError("UNSUPPORTED_MEDIA_TYPE", "BODY_REQUEST", "Content-Type must be application/json"),
@@ -41,7 +41,7 @@ func ValidateRequestBody[T any](
 				msg := ve.Translate(trans)
 
 				pkgResponse.ErrorWithCode(
-					resp,
+					w,
 					http.StatusUnprocessableEntity,
 					"invalid body format request",
 					pkgErrors.NewBusinessError("INVALID_", "BODY_FORMAT_REQUEST", msg),
@@ -49,8 +49,8 @@ func ValidateRequestBody[T any](
 				return
 			}
 
-			ctx := context.WithValue(req.Context(), BodyKey, body)
-			next.ServeHTTP(resp, req.WithContext(ctx))
+			ctx := context.WithValue(r.Context(), BodyKey, body)
+			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
 }

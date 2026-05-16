@@ -2,8 +2,8 @@ package usecase
 
 import (
 	"auth-service/domain/repository"
-
-	"auth-service/application/dto"
+	"auth-service/delivery/http/request"
+	"auth-service/delivery/http/response"
 
 	"context"
 )
@@ -18,12 +18,12 @@ func NewListUserUseCase(userRepository repository.Repository) *ListUserUseCase {
 	}
 }
 
-func (uc *ListUserUseCase) Execute(ctx context.Context, req *dto.ListUserFilterRequest) ([]*dto.UserResponse, error) {
+func (uc *ListUserUseCase) Execute(ctx context.Context, req *request.ListUserFilterRequest) ([]*response.UserResponse, error) {
 	users, err := uc.userRepository.FindAll(ctx, req.PaginationRequest)
 	if err != nil {
 		return nil, err
 	}
 
-	response := dto.NewUserResponseList(users)
-	return response, nil
+	res := response.NewUserResponseList(users)
+	return res, nil
 }

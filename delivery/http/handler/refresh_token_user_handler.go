@@ -1,9 +1,9 @@
 package handler
 
 import (
-	"auth-service/application/dto"
 	"auth-service/application/usecase"
 	"auth-service/delivery/http/middlewares"
+	"auth-service/delivery/http/request"
 	pkgResponse "auth-service/pkg/response"
 	"net/http"
 )
@@ -20,7 +20,7 @@ func NewRefreshTokenUserHandler(refreshTokenUserUserUseCase *usecase.RefreshToke
 
 func (h *RefreshTokenUserHandler) Execute(resp http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
-	body := ctx.Value(middlewares.BodyKey).(dto.RefreshTokenUserDTO)
+	body := ctx.Value(middlewares.BodyKey).(request.RefreshTokenRequest)
 
 	data, err := h.refreshTokenUserUserUseCase.Execute(ctx, &body)
 	if err != nil {

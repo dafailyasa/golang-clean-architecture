@@ -3,8 +3,8 @@ package usecase
 import (
 	"auth-service/domain/repository"
 	"auth-service/domain/service"
-
-	"auth-service/application/dto"
+	"auth-service/delivery/http/request"
+	"auth-service/delivery/http/response"
 
 	"auth-service/pkg/constant"
 	"context"
@@ -22,7 +22,7 @@ func NewLoginUserUseCase(userService service.Service, userRepository repository.
 	}
 }
 
-func (uc *LoginUserUseCase) Execute(ctx context.Context, body *dto.LoginUserRequest) (*dto.LoginUserResponse, error) {
+func (uc *LoginUserUseCase) Execute(ctx context.Context, body *request.LoginUserRequest) (*response.LoginUserResponse, error) {
 	u, err := uc.userService.ValidateAuthenticateUser(ctx, body.Email)
 	if err != nil {
 		return nil, err
@@ -33,5 +33,5 @@ func (uc *LoginUserUseCase) Execute(ctx context.Context, body *dto.LoginUserRequ
 		return nil, err
 	}
 
-	return dto.NewLoginUserResponse(*accessToken, *refreshToken, u.GetFullName()), nil
+	return response.NewLoginUserResponse(*accessToken, *refreshToken, u.GetFullName()), nil
 }
