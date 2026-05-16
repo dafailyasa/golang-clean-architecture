@@ -1,6 +1,7 @@
 package valueobject
 
 import (
+	"auth-service/domain/enum"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -44,14 +45,14 @@ func (suite *ValueObjectsTestSuite) TestNewEmail() {
 func (suite *ValueObjectsTestSuite) TestStatus_IsValid() {
 	tests := []struct {
 		name   string
-		status Status
+		status enum.Status
 		want   bool
 	}{
-		{"Active", UserStatusActive, true},
-		{"Inactive", UserStatusInactive, true},
-		{"Suspended", UserStatusSuspended, true},
-		{"Invalid status", "unknown", false},
-		{"Empty status", "", false},
+		{"Active", enum.UserStatusActive, true},
+		{"Inactive", enum.UserStatusInactive, true},
+		{"Suspended", enum.UserStatusSuspended, true},
+		{"Invalid status", enum.Status("unknown"), false},
+		{"Empty status", enum.Status(""), false},
 	}
 
 	for _, tt := range tests {

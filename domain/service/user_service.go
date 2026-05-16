@@ -1,11 +1,13 @@
 package service
 
 import (
+	"auth-service/domain/enum"
+
 	"auth-service/domain/aggregate"
 	"auth-service/domain/repository"
 	"auth-service/domain/valueobject"
 
-	"auth-service/application/port"
+	appRepo "auth-service/application/repository"
 	"auth-service/config"
 
 	"auth-service/pkg/constant"
@@ -15,23 +17,23 @@ import (
 )
 
 type userService struct {
-	userRepo         repository.Repository
-	txManager        port.TransactionManager
-	cfg              config.Config
-	identityProvider port.IdentityProvider
+	userRepo     repository.Repository
+	txManager    appRepo.TransactionManager
+	cfg          config.Config
+	authProvider AuthProvider
 }
 
-func NewUserService(userRepo repository.Repository, txManager port.TransactionManager, jwtConfig config.Config, identityProvider port.IdentityProvider) Service {
+func NewUserService(userRepo repository.Repository, txManager appRepo.TransactionManager, jwtConfig config.Config, authProvider AuthProvider) Service {
 	return &userService{
-		userRepo:         userRepo,
-		txManager:        txManager,
-		cfg:              jwtConfig,
-		identityProvider: identityProvider,
+		userRepo:     userRepo,
+		txManager:    txManager,
+		cfg:          jwtConfig,
+		authProvider: authProvider,
 	}
 }
 
 func (s *userService) createUserKeycloak(ctx context.Context, user *aggregate.User, password string) (string, error) {
-	data := port.RegisterUserParam{
+	data := valueobject.RegisterUserParam{
 		Username:  user.Username,
 		FirstName: user.FirstName,
 		LastName:  user.LastName,
@@ -39,7 +41,7 @@ func (s *userService) createUserKeycloak(ctx context.Context, user *aggregate.Us
 		Password:  password,
 	}
 
-	keycloakUUID, err := s.identityProvider.CreateUser(ctx, data)
+	keycloakUUID, err := s.authProvider.CreateUser(ctx, data)
 	if err != nil {
 		return "", err
 	}
@@ -103,7 +105,7 @@ func (s *userService) ValidateAuthenticateUser(ctx context.Context, email string
 }
 
 func (s *userService) GenerateToken(ctx context.Context, email, password, grantType string) (accessToken *string, refreshToken *string, err error) {
-	token, err := s.identityProvider.GetAccessToken(ctx, email, password, s.cfg.Keycloak.ClientID, grantType, constant.KeycloakScope)
+	token, err := s.authProvider.GetAccessToken(ctx, email, password, s.cfg.Keycloak.ClientID, grantType, constant.KeycloakScope)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -112,12 +114,12 @@ func (s *userService) GenerateToken(ctx context.Context, email, password, grantT
 }
 
 func (s *userService) RefreshToken(ctx context.Context, refreshToken string) (*aggregate.User, *string, *string, error) {
-	tokenRes, err := s.identityProvider.RefreshToken(ctx, refreshToken)
+	tokenRes, err := s.authProvider.RefreshToken(ctx, refreshToken)
 	if err != nil {
 		return nil, nil, nil, err
 	}
 
-	userInfo, err := s.identityProvider.GetUserInfo(ctx, tokenRes.AccessToken)
+	userInfo, err := s.authProvider.GetUserInfo(ctx, tokenRes.AccessToken)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -148,7 +150,7 @@ func (s *userService) UpdateUser(ctx context.Context, id uint, email, firstsName
 			return pkgErrors.NewBusinessError("SUPU", "002", "Email is already registered")
 		}
 
-		if err := u.Rebuild(firstsName, lastName, email, valueobject.Status(status), isAdmin); err != nil {
+		if err := u.Rebuild(firstsName, lastName, email, enum.Status(status), isAdmin); err != nil {
 			return err
 		}
 
@@ -156,15 +158,15 @@ func (s *userService) UpdateUser(ctx context.Context, id uint, email, firstsName
 			return err
 		}
 
-		updatePayload := port.UpdateUserParam{
+		updatePayload := valueobject.UpdateUserParam{
 			FirstName: u.FirstName,
 			LastName:  u.LastName,
 			Email:     u.Email.String(),
 			Password:  password,
-			Enabled:   u.Status == valueobject.UserStatusActive,
+			Enabled:   u.Status == enum.UserStatusActive,
 		}
 
-		if err := s.identityProvider.UpdateUser(ctx, u.KeycloakUUID, updatePayload); err != nil {
+		if err := s.authProvider.UpdateUser(ctx, u.KeycloakUUID, updatePayload); err != nil {
 			return err
 		}
 
@@ -186,7 +188,7 @@ func (s *userService) DeleteUser(ctx context.Context, id uint) error {
 			return err
 		}
 
-		if err := s.identityProvider.DeleteUser(ctx, u.KeycloakUUID); err != nil {
+		if err := s.authProvider.DeleteUser(ctx, u.KeycloakUUID); err != nil {
 			return err
 		}
 

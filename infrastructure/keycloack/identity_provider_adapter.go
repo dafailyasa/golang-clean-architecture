@@ -1,7 +1,9 @@
 package keycloack
 
 import (
-	"auth-service/application/port"
+	"auth-service/domain/service"
+	"auth-service/domain/valueobject"
+
 	"context"
 )
 
@@ -9,11 +11,11 @@ type KeycloakAdapter struct {
 	svc *KeycloakService
 }
 
-func NewKeycloakAdapter(svc *KeycloakService) port.IdentityProvider {
+func NewKeycloakAdapter(svc *KeycloakService) service.AuthProvider {
 	return &KeycloakAdapter{svc: svc}
 }
 
-func (a *KeycloakAdapter) CreateUser(ctx context.Context, param port.RegisterUserParam) (string, error) {
+func (a *KeycloakAdapter) CreateUser(ctx context.Context, param valueobject.RegisterUserParam) (string, error) {
 	cmd := RegisterUserDTO{
 		Username:      param.Username,
 		Enabled:       true,
@@ -32,40 +34,40 @@ func (a *KeycloakAdapter) CreateUser(ctx context.Context, param port.RegisterUse
 	return a.svc.CreateUser(ctx, cmd)
 }
 
-func (a *KeycloakAdapter) GetAccessToken(ctx context.Context, email, password, clientID, grantType, scope string) (*port.TokenResponse, error) {
+func (a *KeycloakAdapter) GetAccessToken(ctx context.Context, email, password, clientID, grantType, scope string) (*valueobject.TokenResponse, error) {
 	res, err := a.svc.GetAccessToken(ctx, email, password, clientID, grantType, scope)
 	if err != nil {
 		return nil, err
 	}
-	return &port.TokenResponse{
+	return &valueobject.TokenResponse{
 		AccessToken:  res.AccessToken,
 		RefreshToken: res.RefreshToken,
 	}, nil
 }
 
-func (a *KeycloakAdapter) RefreshToken(ctx context.Context, refreshToken string) (*port.TokenResponse, error) {
+func (a *KeycloakAdapter) RefreshToken(ctx context.Context, refreshToken string) (*valueobject.TokenResponse, error) {
 	res, err := a.svc.RefreshToken(ctx, refreshToken)
 	if err != nil {
 		return nil, err
 	}
-	return &port.TokenResponse{
+	return &valueobject.TokenResponse{
 		AccessToken:  res.AccessToken,
 		RefreshToken: res.RefreshToken,
 	}, nil
 }
 
-func (a *KeycloakAdapter) GetUserInfo(ctx context.Context, accessToken string) (*port.UserInfoResponse, error) {
+func (a *KeycloakAdapter) GetUserInfo(ctx context.Context, accessToken string) (*valueobject.UserInfoResponse, error) {
 	res, err := a.svc.GetUserInfo(ctx, accessToken)
 	if err != nil {
 		return nil, err
 	}
-	return &port.UserInfoResponse{
+	return &valueobject.UserInfoResponse{
 		Sub:   res.Sub,
 		Email: res.Email,
 	}, nil
 }
 
-func (a *KeycloakAdapter) UpdateUser(ctx context.Context, keycloakUUID string, param port.UpdateUserParam) error {
+func (a *KeycloakAdapter) UpdateUser(ctx context.Context, keycloakUUID string, param valueobject.UpdateUserParam) error {
 	cmd := UpdateUserDTO{
 		FirstName:     param.FirstName,
 		LastName:      param.LastName,

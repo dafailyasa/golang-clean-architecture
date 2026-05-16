@@ -2,8 +2,7 @@ package service
 
 import (
 	"auth-service/domain/aggregate"
-
-	"auth-service/application/port"
+	"auth-service/domain/valueobject"
 
 	"auth-service/pkg/pagination"
 	"context"
@@ -92,36 +91,36 @@ type MockIdentityProvider struct {
 	mock.Mock
 }
 
-func (m *MockIdentityProvider) CreateUser(ctx context.Context, param port.RegisterUserParam) (string, error) {
+func (m *MockIdentityProvider) CreateUser(ctx context.Context, param valueobject.RegisterUserParam) (string, error) {
 	args := m.Called(ctx, param)
 	return args.String(0), args.Error(1)
 }
 
-func (m *MockIdentityProvider) GetAccessToken(ctx context.Context, email, password, clientID, grantType, scope string) (*port.TokenResponse, error) {
+func (m *MockIdentityProvider) GetAccessToken(ctx context.Context, email, password, clientID, grantType, scope string) (*valueobject.TokenResponse, error) {
 	args := m.Called(ctx, email, password, clientID, grantType, scope)
 	if args.Get(0) != nil {
-		return args.Get(0).(*port.TokenResponse), args.Error(1)
+		return args.Get(0).(*valueobject.TokenResponse), args.Error(1)
 	}
 	return nil, args.Error(1)
 }
 
-func (m *MockIdentityProvider) RefreshToken(ctx context.Context, refreshToken string) (*port.TokenResponse, error) {
+func (m *MockIdentityProvider) RefreshToken(ctx context.Context, refreshToken string) (*valueobject.TokenResponse, error) {
 	args := m.Called(ctx, refreshToken)
 	if args.Get(0) != nil {
-		return args.Get(0).(*port.TokenResponse), args.Error(1)
+		return args.Get(0).(*valueobject.TokenResponse), args.Error(1)
 	}
 	return nil, args.Error(1)
 }
 
-func (m *MockIdentityProvider) GetUserInfo(ctx context.Context, accessToken string) (*port.UserInfoResponse, error) {
+func (m *MockIdentityProvider) GetUserInfo(ctx context.Context, accessToken string) (*valueobject.UserInfoResponse, error) {
 	args := m.Called(ctx, accessToken)
 	if args.Get(0) != nil {
-		return args.Get(0).(*port.UserInfoResponse), args.Error(1)
+		return args.Get(0).(*valueobject.UserInfoResponse), args.Error(1)
 	}
 	return nil, args.Error(1)
 }
 
-func (m *MockIdentityProvider) UpdateUser(ctx context.Context, keycloakUUID string, param port.UpdateUserParam) error {
+func (m *MockIdentityProvider) UpdateUser(ctx context.Context, keycloakUUID string, param valueobject.UpdateUserParam) error {
 	args := m.Called(ctx, keycloakUUID, param)
 	return args.Error(0)
 }

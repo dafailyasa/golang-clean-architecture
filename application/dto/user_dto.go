@@ -1,22 +1,23 @@
 package dto
 
 import (
+	"auth-service/domain/enum"
+
 	"auth-service/domain/aggregate"
-	"auth-service/domain/valueobject"
 
 	"time"
 )
 
 type UserResponse struct {
-	ID           uint               `json:"id"`
-	KeycloakUUID string             `json:"keycloakUUID"`
-	IsAdmin      bool               `json:"isAdmin"`
-	FirstName    string             `json:"firstName"`
-	LastName     string             `json:"lastName"`
-	Email        string             `json:"email"`
-	Status       valueobject.Status `json:"status"`
-	CreatedAt    time.Time          `json:"createdAt"`
-	UpdatedAt    time.Time          `json:"updatedAt"`
+	ID           uint        `json:"id"`
+	KeycloakUUID string      `json:"keycloakUUID"`
+	IsAdmin      bool        `json:"isAdmin"`
+	FirstName    string      `json:"firstName"`
+	LastName     string      `json:"lastName"`
+	Email        string      `json:"email"`
+	Status       enum.Status `json:"status"`
+	CreatedAt    time.Time   `json:"createdAt"`
+	UpdatedAt    time.Time   `json:"updatedAt"`
 }
 
 func NewUserResponse(u *aggregate.User) *UserResponse {

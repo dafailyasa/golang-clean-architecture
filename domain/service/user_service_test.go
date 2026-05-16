@@ -8,7 +8,7 @@ import (
 	"auth-service/domain/service"
 
 	"auth-service/config"
-	"auth-service/application/port"
+	appRepo "auth-service/application/repository"
 
 	"auth-service/pkg/constant"
 	pkgErrors "auth-service/pkg/errors"
@@ -48,7 +48,7 @@ func (t *UserServiceTestSuite) TestRegisterUser() {
 		isAdmin := false
 		t.tx.On("WithTransaction", t.ctx, mock.AnythingOfType("func(context.Context) error")).Return(nil)
 		t.repo.On("ExistsByEmailAndUsername", t.ctx, "test@example.com", mock.AnythingOfType("string")).Return(false, nil)
-		t.ip.On("CreateUser", t.ctx, mock.MatchedBy(func(p port.RegisterUserParam) bool {
+		t.ip.On("CreateUser", t.ctx, mock.MatchedBy(func(p valueobject.RegisterUserParam) bool {
 			return p.Email == "test@example.com" && p.FirstName == "John"
 		})).Return("uuid-1234", nil)
 		t.repo.On("Create", t.ctx, mock.AnythingOfType("*aggregate.User")).Return(nil)
@@ -83,7 +83,7 @@ func (t *UserServiceTestSuite) TestRegisterUser() {
 		t.tx.On("WithTransaction", t.ctx, mock.AnythingOfType("func(context.Context) error")).
 			Return(errors.New("keycloak unavailable"))
 		t.repo.On("ExistsByEmailAndUsername", t.ctx, "test@example.com", mock.AnythingOfType("string")).Return(false, nil)
-		t.ip.On("CreateUser", t.ctx, mock.AnythingOfType("port.RegisterUserParam")).
+		t.ip.On("CreateUser", t.ctx, mock.AnythingOfType("valueobject.RegisterUserParam")).
 			Return("", errors.New("keycloak unavailable"))
 
 		res, err := t.svc.RegisterUser(t.ctx, "test@example.com", "John", "Doe", "pass@1234A", &isAdmin)
@@ -155,7 +155,7 @@ func (t *UserServiceTestSuite) TestValidateAuthenticateUser() {
 func (t *UserServiceTestSuite) TestGenerateToken() {
 	t.Run("it should generate access token and refresh token successfully", func() {
 		t.ip.On("GetAccessToken", t.ctx, "test@example.com", "correctpass", "", constant.KeycloakGrantTypePasswordConst, constant.KeycloakScope).
-			Return(&port.TokenResponse{
+			Return(&valueobject.TokenResponse{
 				AccessToken:  "access-token",
 				RefreshToken: "refresh-token",
 			}, nil)
@@ -187,11 +187,11 @@ func (t *UserServiceTestSuite) TestGenerateToken() {
 
 func (t *UserServiceTestSuite) TestRefreshToken() {
 	t.Run("it should refresh token and return user successfully", func() {
-		t.ip.On("RefreshToken", t.ctx, "valid-refresh-token").Return(&port.TokenResponse{
+		t.ip.On("RefreshToken", t.ctx, "valid-refresh-token").Return(&valueobject.TokenResponse{
 			AccessToken:  "new-access-token",
 			RefreshToken: "new-refresh-token",
 		}, nil)
-		t.ip.On("GetUserInfo", t.ctx, "new-access-token").Return(&port.UserInfoResponse{
+		t.ip.On("GetUserInfo", t.ctx, "new-access-token").Return(&valueobject.UserInfoResponse{
 			Sub:   "uuid-1234",
 			Email: "test@example.com",
 		}, nil)
@@ -223,7 +223,7 @@ func (t *UserServiceTestSuite) TestRefreshToken() {
 	})
 
 	t.Run("it should return error when user info cannot be fetched from identity provider", func() {
-		t.ip.On("RefreshToken", t.ctx, "valid-refresh-token").Return(&port.TokenResponse{
+		t.ip.On("RefreshToken", t.ctx, "valid-refresh-token").Return(&valueobject.TokenResponse{
 			AccessToken:  "new-access-token",
 			RefreshToken: "new-refresh-token",
 		}, nil)

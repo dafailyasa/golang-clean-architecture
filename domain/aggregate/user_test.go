@@ -1,7 +1,7 @@
 package aggregate
 
 import (
-	"auth-service/domain/valueobject"
+	"auth-service/domain/enum"
 
 	"testing"
 
@@ -25,7 +25,7 @@ func (suite *EntityTestSuite) TestNewUser() {
 		suite.Equal("test@example.com", got.Email.String())
 		suite.Equal("John", got.FirstName)
 		suite.Equal("Doe", got.LastName)
-		suite.Equal(valueobject.UserStatusActive, got.Status)
+		suite.Equal(enum.UserStatusActive, got.Status)
 		suite.Equal("John Doe", got.GetFullName())
 		suite.NotEmpty(got.Username)
 		suite.False(got.IsInActiveAndSuspend())
@@ -55,12 +55,12 @@ func (suite *EntityTestSuite) TestUser_Rebuild() {
 
 	suite.Run("Success Rebuild", func() {
 		newIsAdmin := true
-		err := u.Rebuild("Jane", "Smith", "jane@example.com", valueobject.UserStatusSuspended, &newIsAdmin)
+		err := u.Rebuild("Jane", "Smith", "jane@example.com", enum.UserStatusSuspended, &newIsAdmin)
 		suite.NoError(err)
 		suite.Equal("Jane", u.FirstName)
 		suite.Equal("Smith", u.LastName)
 		suite.Equal("jane@example.com", u.Email.String())
-		suite.Equal(valueobject.UserStatusSuspended, u.Status)
+		suite.Equal(enum.UserStatusSuspended, u.Status)
 		suite.True(u.IsInActiveAndSuspend())
 	})
 
@@ -70,7 +70,7 @@ func (suite *EntityTestSuite) TestUser_Rebuild() {
 	})
 
 	suite.Run("Invalid Email", func() {
-		err := u.Rebuild("Jane", "Smith", "invalid", valueobject.UserStatusActive, nil)
+		err := u.Rebuild("Jane", "Smith", "invalid", enum.UserStatusActive, nil)
 		suite.Error(err)
 	})
 }

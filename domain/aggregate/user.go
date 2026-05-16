@@ -1,6 +1,8 @@
 package aggregate
 
 import (
+	"auth-service/domain/enum"
+
 	"auth-service/domain/entity"
 	"auth-service/domain/valueobject"
 
@@ -18,7 +20,7 @@ type User struct {
 	FirstName    string
 	LastName     string
 	Username     string
-	Status       valueobject.Status
+	Status       enum.Status
 	Profile      *entity.UserProfile
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
@@ -43,14 +45,14 @@ func NewUser(email, firstName, lastName string, isAdmin *bool) (*User, error) {
 		Email:     emailVO,
 		FirstName: firstName,
 		LastName:  lastName,
-		Status:    valueobject.UserStatusActive,
+		Status:    enum.UserStatusActive,
 		Username:  helpers.GenerateUsername(firstName, lastName),
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}, nil
 }
 
-func (u *User) Rebuild(firstName string, lastName string, email string, status valueobject.Status, isAdmin *bool) error {
+func (u *User) Rebuild(firstName string, lastName string, email string, status enum.Status, isAdmin *bool) error {
 
 	if !status.IsValid() {
 		return pkgErrors.NewBusinessError(
@@ -93,7 +95,7 @@ func (u *User) SetLastName(lastName string) {
 	u.LastName = lastName
 }
 
-func (u *User) SetStatus(status valueobject.Status) {
+func (u *User) SetStatus(status enum.Status) {
 	u.Status = status
 }
 
@@ -112,10 +114,10 @@ func (u *User) SetIsAdmin(isAdmin *bool) {
 }
 
 func (u *User) IsInActiveAndSuspend() bool {
-	return u.Status != valueobject.UserStatusActive
+	return u.Status != enum.UserStatusActive
 }
 
-func (u *User) GetStatus() valueobject.Status {
+func (u *User) GetStatus() enum.Status {
 	return u.Status
 }
 

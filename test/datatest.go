@@ -1,6 +1,8 @@
 package test
 
 import (
+	"auth-service/domain/enum"
+
 	"auth-service/domain/aggregate"
 	"auth-service/domain/valueobject"
 
@@ -18,7 +20,7 @@ var (
 		FirstName:    "Testing First Name",
 		LastName:     "Testing Last Name",
 		Username:     "Testing_Username",
-		Status:       valueobject.UserStatusActive,
+		Status:       enum.UserStatusActive,
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
 	}
