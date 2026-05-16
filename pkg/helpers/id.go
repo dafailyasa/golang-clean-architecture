@@ -3,7 +3,7 @@ package helpers
 import (
 	"strconv"
 
-	pkgErrors "auth-service/pkg/errors"
+	pkgErrors "auth-service/pkg/exception"
 )
 
 // ParseUintParam converts a decimal string ID into uint and wraps validation errors

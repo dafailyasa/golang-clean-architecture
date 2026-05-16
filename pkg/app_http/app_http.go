@@ -2,7 +2,7 @@ package app_http
 
 import (
 	"auth-service/pkg/constant"
-	pkgErrors "auth-service/pkg/errors"
+	pkgErrors "auth-service/pkg/exception"
 	"auth-service/pkg/strings"
 	"bytes"
 	"context"

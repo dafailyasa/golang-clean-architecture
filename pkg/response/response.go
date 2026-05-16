@@ -2,7 +2,7 @@ package response
 
 import (
 	"auth-service/pkg/constant"
-	"auth-service/pkg/errors"
+	"auth-service/pkg/exception"
 	pkgPagination "auth-service/pkg/pagination"
 	"encoding/json"
 	"net/http"
@@ -80,7 +80,7 @@ func SuccessWithNoContent(w http.ResponseWriter, message string) {
 
 // ErrorWithCode creates an error response with custom status code
 func ErrorWithCode(w http.ResponseWriter, statusCode int, msg string, err error) {
-	errDTO := errors.GetError(err)
+	errDTO := exception.GetError(err)
 
 	writeJSON(w, statusCode, Response{
 		Success: false,
@@ -95,7 +95,16 @@ func ErrorWithCode(w http.ResponseWriter, statusCode int, msg string, err error)
 }
 
 func Error(w http.ResponseWriter, msg string, err error) {
-	errDTO := errors.GetError(err)
+	errDTO := exception.GetError(err)
+	statusCode := http.StatusBadRequest
+	if status := exception.GetHTTPStatus(err); status != nil {
+		statusCode = *status
+	} else if errDTO.IsBusinessError {
+		statusCode = http.StatusUnprocessableEntity
+	} else if errDTO.IsInfrastructureError {
+		statusCode = http.StatusInternalServerError
+	}
+
 	data := Response{
 		Success: false,
 		Message: msg,
@@ -107,11 +116,5 @@ func Error(w http.ResponseWriter, msg string, err error) {
 		},
 	}
 
-	if errDTO.IsBusinessError {
-		writeJSON(w, http.StatusUnprocessableEntity, data)
-	} else if errDTO.IsInfrastructureError {
-		writeJSON(w, http.StatusInternalServerError, data)
-	} else {
-		writeJSON(w, http.StatusBadRequest, data)
-	}
+	writeJSON(w, statusCode, data)
 }
