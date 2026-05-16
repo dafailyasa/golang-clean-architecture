@@ -1,4 +1,4 @@
-package entity
+package aggregate
 
 import (
 	"auth-service/domain/valueobject"

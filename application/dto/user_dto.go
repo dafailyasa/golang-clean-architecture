@@ -1,7 +1,7 @@
 package dto
 
 import (
-	"auth-service/domain/entity"
+	"auth-service/domain/aggregate"
 	"auth-service/domain/valueobject"
 
 	"time"
@@ -19,7 +19,7 @@ type UserResponse struct {
 	UpdatedAt    time.Time          `json:"updatedAt"`
 }
 
-func NewUserResponse(u *entity.User) *UserResponse {
+func NewUserResponse(u *aggregate.User) *UserResponse {
 	return &UserResponse{
 		ID:           u.ID,
 		KeycloakUUID: u.KeycloakUUID,
@@ -33,7 +33,7 @@ func NewUserResponse(u *entity.User) *UserResponse {
 	}
 }
 
-func NewUserResponseList(users []*entity.User) []*UserResponse {
+func NewUserResponseList(users []*aggregate.User) []*UserResponse {
 	var response []*UserResponse
 	for _, u := range users {
 		response = append(response, NewUserResponse(u))

@@ -1,7 +1,7 @@
 package service
 
 import (
-	"auth-service/domain/entity"
+	"auth-service/domain/aggregate"
 
 	"auth-service/application/port"
 
@@ -15,7 +15,7 @@ type MockUserRepository struct {
 	mock.Mock
 }
 
-func (m *MockUserRepository) Create(ctx context.Context, u *entity.User) error {
+func (m *MockUserRepository) Create(ctx context.Context, u *aggregate.User) error {
 	args := m.Called(ctx, u)
 	return args.Error(0)
 }
@@ -25,31 +25,31 @@ func (m *MockUserRepository) ExistsByEmailAndUsername(ctx context.Context, email
 	return args.Bool(0), args.Error(1)
 }
 
-func (m *MockUserRepository) FindByEmail(ctx context.Context, email string) (*entity.User, error) {
+func (m *MockUserRepository) FindByEmail(ctx context.Context, email string) (*aggregate.User, error) {
 	args := m.Called(ctx, email)
 	if args.Get(0) != nil {
-		return args.Get(0).(*entity.User), args.Error(1)
+		return args.Get(0).(*aggregate.User), args.Error(1)
 	}
 	return nil, args.Error(1)
 }
 
-func (m *MockUserRepository) FindByKeycloakUUID(ctx context.Context, keycloakUUID string) (*entity.User, error) {
+func (m *MockUserRepository) FindByKeycloakUUID(ctx context.Context, keycloakUUID string) (*aggregate.User, error) {
 	args := m.Called(ctx, keycloakUUID)
 	if args.Get(0) != nil {
-		return args.Get(0).(*entity.User), args.Error(1)
+		return args.Get(0).(*aggregate.User), args.Error(1)
 	}
 	return nil, args.Error(1)
 }
 
-func (m *MockUserRepository) FindByID(ctx context.Context, id uint) (*entity.User, error) {
+func (m *MockUserRepository) FindByID(ctx context.Context, id uint) (*aggregate.User, error) {
 	args := m.Called(ctx, id)
 	if args.Get(0) != nil {
-		return args.Get(0).(*entity.User), args.Error(1)
+		return args.Get(0).(*aggregate.User), args.Error(1)
 	}
 	return nil, args.Error(1)
 }
 
-func (m *MockUserRepository) Update(ctx context.Context, u *entity.User) error {
+func (m *MockUserRepository) Update(ctx context.Context, u *aggregate.User) error {
 	args := m.Called(ctx, u)
 	return args.Error(0)
 }
@@ -64,10 +64,10 @@ func (m *MockUserRepository) DeleteByID(ctx context.Context, id uint) error {
 	return args.Error(0)
 }
 
-func (m *MockUserRepository) FindAll(ctx context.Context, req pagination.PaginationRequest) ([]*entity.User, int64, error) {
+func (m *MockUserRepository) FindAll(ctx context.Context, req pagination.PaginationRequest) ([]*aggregate.User, int64, error) {
 	args := m.Called(ctx, req)
 	if args.Get(0) != nil {
-		return args.Get(0).([]*entity.User), args.Get(1).(int64), args.Error(2)
+		return args.Get(0).([]*aggregate.User), args.Get(1).(int64), args.Error(2)
 	}
 	return nil, 0, args.Error(2)
 }

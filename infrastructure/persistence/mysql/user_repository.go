@@ -1,7 +1,7 @@
 package mysql
 
 import (
-	"auth-service/domain/entity"
+	"auth-service/domain/aggregate"
 	"auth-service/domain/repository"
 
 	"auth-service/infrastructure/persistence/mysql/model"
@@ -21,7 +21,7 @@ func NewUserRepository(db *gorm.DB) repository.Repository {
 	return &UserRepository{db}
 }
 
-func (r *UserRepository) Create(ctx context.Context, u *entity.User) error {
+func (r *UserRepository) Create(ctx context.Context, u *aggregate.User) error {
 	entity := model.ToEntity(u)
 
 	db := GetDB(ctx, r.db)
@@ -47,7 +47,7 @@ func (r *UserRepository) ExistsByEmailAndUsername(ctx context.Context, email, us
 	return count > 0, nil
 }
 
-func (r *UserRepository) FindByID(ctx context.Context, id uint) (*entity.User, error) {
+func (r *UserRepository) FindByID(ctx context.Context, id uint) (*aggregate.User, error) {
 	var mdl model.UserEntity
 	db := GetDB(ctx, r.db)
 
@@ -61,7 +61,7 @@ func (r *UserRepository) FindByID(ctx context.Context, id uint) (*entity.User, e
 	return mdl.ToDomain()
 }
 
-func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*entity.User, error) {
+func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*aggregate.User, error) {
 	var mdl model.UserEntity
 	db := GetDB(ctx, r.db)
 
@@ -75,7 +75,7 @@ func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*entity
 	return mdl.ToDomain()
 }
 
-func (r *UserRepository) FindByKeycloakUUID(ctx context.Context, keycloakUUID string) (*entity.User, error) {
+func (r *UserRepository) FindByKeycloakUUID(ctx context.Context, keycloakUUID string) (*aggregate.User, error) {
 	var mdl model.UserEntity
 	db := GetDB(ctx, r.db)
 
@@ -89,7 +89,7 @@ func (r *UserRepository) FindByKeycloakUUID(ctx context.Context, keycloakUUID st
 	return mdl.ToDomain()
 }
 
-func (r *UserRepository) Update(ctx context.Context, u *entity.User) error {
+func (r *UserRepository) Update(ctx context.Context, u *aggregate.User) error {
 	entity := model.ToEntity(u)
 	db := GetDB(ctx, r.db)
 
@@ -130,7 +130,7 @@ func (r *UserRepository) DeleteByID(ctx context.Context, id uint) error {
 	return nil
 }
 
-func (r *UserRepository) FindAll(ctx context.Context, req *pagination.PaginationRequest) ([]*entity.User, error) {
+func (r *UserRepository) FindAll(ctx context.Context, req *pagination.PaginationRequest) ([]*aggregate.User, error) {
 	var models []model.UserEntity
 
 	db := GetDB(ctx, r.db)
@@ -150,7 +150,7 @@ func (r *UserRepository) FindAll(ctx context.Context, req *pagination.Pagination
 		return nil, pkgErrors.NewInfrastructureError("DB_", "QUERY_FAILED_FINDALL", err.Error())
 	}
 
-	var users []*entity.User
+	var users []*aggregate.User
 	for _, m := range models {
 		domainUser, err := m.ToDomain()
 		if err != nil {

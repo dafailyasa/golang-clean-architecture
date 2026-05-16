@@ -1,7 +1,7 @@
 package service
 
 import (
-	"auth-service/domain/entity"
+	"auth-service/domain/aggregate"
 	"auth-service/domain/repository"
 	"auth-service/domain/valueobject"
 
@@ -30,7 +30,7 @@ func NewUserService(userRepo repository.Repository, txManager port.TransactionMa
 	}
 }
 
-func (s *userService) createUserKeycloak(ctx context.Context, user *entity.User, password string) (string, error) {
+func (s *userService) createUserKeycloak(ctx context.Context, user *aggregate.User, password string) (string, error) {
 	data := port.RegisterUserParam{
 		Username:  user.Username,
 		FirstName: user.FirstName,
@@ -47,9 +47,9 @@ func (s *userService) createUserKeycloak(ctx context.Context, user *entity.User,
 	return keycloakUUID, nil
 }
 
-func (s *userService) RegisterUser(ctx context.Context, email, firstName, lastName, password string, isAdmin *bool) (*entity.User, error) {
-	var createdUser *entity.User
-	newUser, err := entity.NewUser(email, firstName, lastName, isAdmin)
+func (s *userService) RegisterUser(ctx context.Context, email, firstName, lastName, password string, isAdmin *bool) (*aggregate.User, error) {
+	var createdUser *aggregate.User
+	newUser, err := aggregate.NewUser(email, firstName, lastName, isAdmin)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +86,7 @@ func (s *userService) RegisterUser(ctx context.Context, email, firstName, lastNa
 	return createdUser, nil
 }
 
-func (s *userService) ValidateAuthenticateUser(ctx context.Context, email string) (*entity.User, error) {
+func (s *userService) ValidateAuthenticateUser(ctx context.Context, email string) (*aggregate.User, error) {
 	u, err := s.userRepo.FindByEmail(ctx, email)
 	if err != nil {
 		if err.(*pkgErrors.ErrorCustomize).IsBusinessError() {
@@ -111,7 +111,7 @@ func (s *userService) GenerateToken(ctx context.Context, email, password, grantT
 	return &token.AccessToken, &token.RefreshToken, nil
 }
 
-func (s *userService) RefreshToken(ctx context.Context, refreshToken string) (*entity.User, *string, *string, error) {
+func (s *userService) RefreshToken(ctx context.Context, refreshToken string) (*aggregate.User, *string, *string, error) {
 	tokenRes, err := s.identityProvider.RefreshToken(ctx, refreshToken)
 	if err != nil {
 		return nil, nil, nil, err
@@ -130,8 +130,8 @@ func (s *userService) RefreshToken(ctx context.Context, refreshToken string) (*e
 	return u, &tokenRes.AccessToken, &tokenRes.RefreshToken, nil
 }
 
-func (s *userService) UpdateUser(ctx context.Context, id uint, email, firstsName, lastName, status, password string, isAdmin *bool) (*entity.User, error) {
-	var updatedUser *entity.User
+func (s *userService) UpdateUser(ctx context.Context, id uint, email, firstsName, lastName, status, password string, isAdmin *bool) (*aggregate.User, error) {
+	var updatedUser *aggregate.User
 
 	err := s.txManager.WithTransaction(ctx, func(txCtx context.Context) error {
 		u, err := s.userRepo.FindByID(txCtx, id)

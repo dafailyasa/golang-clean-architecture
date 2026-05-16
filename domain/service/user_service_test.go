@@ -2,7 +2,7 @@ package service
 
 /*
 import (
-	"auth-service/domain/entity"
+	"auth-service/domain/aggregate"
 	"auth-service/domain/valueobject"
 	"auth-service/domain/repository"
 	"auth-service/domain/service"
@@ -51,7 +51,7 @@ func (t *UserServiceTestSuite) TestRegisterUser() {
 		t.ip.On("CreateUser", t.ctx, mock.MatchedBy(func(p port.RegisterUserParam) bool {
 			return p.Email == "test@example.com" && p.FirstName == "John"
 		})).Return("uuid-1234", nil)
-		t.repo.On("Create", t.ctx, mock.AnythingOfType("*entity.User")).Return(nil)
+		t.repo.On("Create", t.ctx, mock.AnythingOfType("*aggregate.User")).Return(nil)
 
 		res, err := t.svc.RegisterUser(t.ctx, "test@example.com", "John", "Doe", "pass@1234A", &isAdmin)
 
@@ -99,8 +99,8 @@ func (t *UserServiceTestSuite) TestRegisterUser() {
 
 func (t *UserServiceTestSuite) TestValidateAuthenticateUser() {
 	t.Run("it should return user when email is valid and account is active", func() {
-		u, _ := entity.NewUser("active@example.com", "John", "Doe", nil)
-		u.Status = entity.UserStatusActive
+		u, _ := aggregate.NewUser("active@example.com", "John", "Doe", nil)
+		u.Status = aggregate.UserStatusActive
 		t.repo.On("FindByEmail", t.ctx, "active@example.com").Return(u, nil)
 
 		res, err := t.svc.ValidateAuthenticateUser(t.ctx, "active@example.com")
@@ -124,8 +124,8 @@ func (t *UserServiceTestSuite) TestValidateAuthenticateUser() {
 	})
 
 	t.Run("it should return error when account is suspended", func() {
-		u, _ := entity.NewUser("suspended@example.com", "John", "Doe", nil)
-		u.Status = entity.UserStatusSuspended
+		u, _ := aggregate.NewUser("suspended@example.com", "John", "Doe", nil)
+		u.Status = aggregate.UserStatusSuspended
 		t.repo.On("FindByEmail", t.ctx, "suspended@example.com").Return(u, nil)
 
 		res, err := t.svc.ValidateAuthenticateUser(t.ctx, "suspended@example.com")
@@ -137,7 +137,7 @@ func (t *UserServiceTestSuite) TestValidateAuthenticateUser() {
 	})
 
 	t.Run("it should return error when account is inactive", func() {
-		u, _ := entity.NewUser("inactive@example.com", "John", "Doe", nil)
+		u, _ := aggregate.NewUser("inactive@example.com", "John", "Doe", nil)
 		u.Status = user.UserStatusInactive
 		t.repo.On("FindByEmail", t.ctx, "inactive@example.com").Return(u, nil)
 
@@ -195,7 +195,7 @@ func (t *UserServiceTestSuite) TestRefreshToken() {
 			Sub:   "uuid-1234",
 			Email: "test@example.com",
 		}, nil)
-		u, _ := entity.NewUser("test@example.com", "John", "Doe", nil)
+		u, _ := aggregate.NewUser("test@example.com", "John", "Doe", nil)
 		u.SetKeycloakUUID("uuid-1234")
 		t.repo.On("FindByKeycloakUUID", t.ctx, "uuid-1234").Return(u, nil)
 
@@ -244,7 +244,7 @@ func (t *UserServiceTestSuite) TestRefreshToken() {
 
 func (t *UserServiceTestSuite) TestDeleteUser() {
 	t.Run("it should delete user successfully", func() {
-		u := &entity.User{KeycloakUUID: "uuid-123"}
+		u := &aggregate.User{KeycloakUUID: "uuid-123"}
 		u.SetID(1)
 		t.tx.On("WithTransaction", t.ctx, mock.AnythingOfType("func(context.Context) error")).Return(nil)
 		t.repo.On("FindByID", t.ctx, uint(1)).Return(u, nil)
@@ -273,7 +273,7 @@ func (t *UserServiceTestSuite) TestDeleteUser() {
 	})
 
 	t.Run("it should return error when identity provider fails to delete", func() {
-		u := &entity.User{KeycloakUUID: "uuid-123"}
+		u := &aggregate.User{KeycloakUUID: "uuid-123"}
 		u.SetID(1)
 		t.tx.On("WithTransaction", t.ctx, mock.AnythingOfType("func(context.Context) error")).
 			Return(pkgErrors.NewInfrastructureError("KCDU", "001", "keycloak error"))

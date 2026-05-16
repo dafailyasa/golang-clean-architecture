@@ -1,7 +1,7 @@
 package model
 
 import (
-	"auth-service/domain/entity"
+	"auth-service/domain/aggregate"
 	"auth-service/domain/valueobject"
 
 	"time"
@@ -24,7 +24,7 @@ func (UserEntity) TableName() string {
 	return "users"
 }
 
-func ToEntity(u *entity.User) *UserEntity {
+func ToEntity(u *aggregate.User) *UserEntity {
 	return &UserEntity{
 		ID:           u.ID,
 		KeycloakUUID: u.KeycloakUUID,
@@ -39,13 +39,13 @@ func ToEntity(u *entity.User) *UserEntity {
 	}
 }
 
-func (r UserEntity) ToDomain() (*entity.User, error) {
+func (r UserEntity) ToDomain() (*aggregate.User, error) {
 	email, err := valueobject.NewEmail(r.Email)
 	if err != nil {
 		return nil, err
 	}
 
-	return &entity.User{
+	return &aggregate.User{
 		ID:           r.ID,
 		KeycloakUUID: r.KeycloakUUID,
 		IsAdmin:      r.IsAdmin,

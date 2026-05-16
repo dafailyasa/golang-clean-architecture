@@ -1,7 +1,7 @@
 package test
 
 import (
-	"auth-service/domain/entity"
+	"auth-service/domain/aggregate"
 	"auth-service/domain/valueobject"
 
 	"time"
@@ -11,7 +11,7 @@ import (
 
 var (
 	newEmail, _  = valueobject.NewEmail("testing@mail.com")
-	UserTestData = entity.User{
+	UserTestData = aggregate.User{
 		KeycloakUUID: uuid.NewString(),
 		Email:        newEmail,
 		IsAdmin:      nil,

@@ -1,6 +1,7 @@
-package entity
+package aggregate
 
 import (
+	"auth-service/domain/entity"
 	"auth-service/domain/valueobject"
 
 	pkgErrors "auth-service/pkg/errors"
@@ -18,6 +19,7 @@ type User struct {
 	LastName     string
 	Username     string
 	Status       valueobject.Status
+	Profile      *entity.UserProfile
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 }
@@ -131,6 +133,16 @@ func (u *User) GetKeycloakUUID() string {
 
 func (u *User) GetFullName() string {
 	return u.FirstName + " " + u.LastName
+}
+
+func (u *User) SetProfile(bio, avatarURL string) {
+	if u.Profile == nil {
+		u.Profile = entity.NewUserProfile(u.ID, bio, avatarURL)
+	} else {
+		u.Profile.UpdateBio(bio)
+		u.Profile.AvatarURL = avatarURL
+	}
+	u.UpdatedAt = time.Now()
 }
 
 func validateName(fieldName string, value string) error {
