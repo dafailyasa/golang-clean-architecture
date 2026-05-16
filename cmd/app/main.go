@@ -2,8 +2,8 @@ package main
 
 import (
 	"auth-service/config"
-	"auth-service/internal/infrastructure/persistence/mysql"
-	"auth-service/internal/presentation/http/router"
+	"auth-service/delivery/http/router"
+	"auth-service/infrastructure/persistence/mysql"
 	pkgAppHttp "auth-service/pkg/app_http"
 	pkgLogger "auth-service/pkg/logger"
 	pkgValidator "auth-service/pkg/validator"
