@@ -1,7 +1,7 @@
 package middlewares
 
 import (
-	pkgErrors "auth-service/pkg/errors"
+	pkgErrors "auth-service/pkg/exception"
 	pkgResponse "auth-service/pkg/response"
 	"context"
 	"encoding/json"

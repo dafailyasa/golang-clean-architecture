@@ -6,7 +6,7 @@ import (
 	"auth-service/domain/entity"
 	"auth-service/domain/valueobject"
 
-	pkgErrors "auth-service/pkg/errors"
+	pkgErrors "auth-service/pkg/exception"
 	"auth-service/pkg/helpers"
 	"fmt"
 	"time"

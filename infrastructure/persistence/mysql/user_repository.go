@@ -5,7 +5,7 @@ import (
 	"auth-service/domain/repository"
 
 	"auth-service/infrastructure/persistence/mysql/model"
-	pkgErrors "auth-service/pkg/errors"
+	pkgErrors "auth-service/pkg/exception"
 	"auth-service/pkg/pagination"
 	"context"
 	"errors"

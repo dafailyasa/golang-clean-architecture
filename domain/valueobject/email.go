@@ -1,7 +1,7 @@
 package valueobject
 
 import (
-	"auth-service/pkg/errors"
+	pkgErrors "auth-service/pkg/exception"
 	"regexp"
 	"strings"
 )
@@ -18,7 +18,7 @@ func NewEmail(email string) (*Email, error) {
 	email = strings.TrimSpace(strings.ToLower(email))
 
 	if email == "" || !emailRegex.MatchString(email) {
-		return nil, errors.NewBusinessError(
+		return nil, pkgErrors.NewBusinessError(
 			"VALIDATION_",
 			"INVALID_EMAIL",
 			"email must be a valid email address",

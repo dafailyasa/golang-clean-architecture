@@ -11,7 +11,7 @@ import (
 	appRepo "auth-service/application/repository"
 
 	"auth-service/pkg/constant"
-	pkgErrors "auth-service/pkg/errors"
+	pkgErrors "auth-service/pkg/exception"
 	"context"
 	"errors"
 	"testing"

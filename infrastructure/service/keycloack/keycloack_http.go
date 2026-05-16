@@ -4,7 +4,7 @@ import (
 	"auth-service/config"
 	pkgHttp "auth-service/pkg/app_http"
 	"auth-service/pkg/constant"
-	pkgErrors "auth-service/pkg/errors"
+	pkgErrors "auth-service/pkg/exception"
 	"auth-service/pkg/helpers"
 	"context"
 	"fmt"

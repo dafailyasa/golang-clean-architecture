@@ -11,7 +11,7 @@ import (
 	"auth-service/config"
 
 	"auth-service/pkg/constant"
-	pkgErrors "auth-service/pkg/errors"
+	pkgErrors "auth-service/pkg/exception"
 	"context"
 	"fmt"
 )
@@ -63,7 +63,7 @@ func (s *userService) RegisterUser(ctx context.Context, email, firstName, lastNa
 		}
 
 		if exists {
-			return pkgErrors.NewBusinessError("SRUS", "001", "Email or Username already registered")
+			return pkgErrors.NewBusinessError("SRUS", "001", pkgErrors.ErrExistEmailOrUsername.Error())
 		}
 
 		keycloakUUID, err := s.createUserKeycloak(ctx, newUser, password)
@@ -147,7 +147,7 @@ func (s *userService) UpdateUser(ctx context.Context, id uint, email, firstsName
 		}
 
 		if existEmail {
-			return pkgErrors.NewBusinessError("SUPU", "002", "Email is already registered")
+			return pkgErrors.NewBusinessError("SUPU", "002", pkgErrors.ErrEmailRegistered.Error())
 		}
 
 		if err := u.Rebuild(firstsName, lastName, email, enum.Status(status), isAdmin); err != nil {
