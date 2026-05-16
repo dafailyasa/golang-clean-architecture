@@ -35,18 +35,27 @@ func NewRouter(
 	httpClient *pkgAppHttp.AppHttp,
 	ut ut.Translator,
 ) *mux.Router {
+
 	router := mux.NewRouter()
-	router.Use(middlewares.CORS, middlewares.JSON)
+
+	// global middleware
+	router.Use(
+		middlewares.CORS,
+		middlewares.JSON,
+	)
 
 	// repository
 	userRepo := mysql.NewUserRepository(db)
 
-	// service infra
+	// infrastructure service
 	keycloakService := keycloack.NewKeycloakService(
 		httpClient,
 		cfg.Keycloak,
 	)
-	keycloakAdapter := keycloack.NewKeycloakAdapter(keycloakService)
+
+	keycloakAdapter := keycloack.NewKeycloakAdapter(
+		keycloakService,
+	)
 
 	// service
 	userService := service.NewUserService(
@@ -57,61 +66,83 @@ func NewRouter(
 	)
 
 	// usecase
-	userUseCase := usecase.NewCreateUserUseCase(userService)
+	createUserUseCase := usecase.NewCreateUserUseCase(userService)
 	listUserUseCase := usecase.NewListUserUseCase(userRepo)
-	loginUseCase := usecase.NewLoginUserUseCase(userService, userRepo)
+	loginUserUseCase := usecase.NewLoginUserUseCase(userService, userRepo)
 	refreshTokenUseCase := usecase.NewRefreshTokenUserUserUseCase(userService)
 	getUserUseCase := usecase.NewDetailUserUseCase(userRepo)
 	updateUserUseCase := usecase.NewUpdateUserUseCase(userService)
 	deleteUserUseCase := usecase.NewDeleteUserUseCase(userService)
 
 	// handler
-	createUserHandler := handler.NewCreateUserHandler(userUseCase)
+	createUserHandler := handler.NewCreateUserHandler(createUserUseCase)
 	listUserHandler := handler.NewListUserHandler(listUserUseCase)
-	loginUserHandler := handler.NewLoginUserHandler(loginUseCase)
-	refreshTokenUserHandler := handler.NewRefreshTokenUserHandler(refreshTokenUseCase)
+	loginUserHandler := handler.NewLoginUserHandler(loginUserUseCase)
+	refreshTokenHandler := handler.NewRefreshTokenUserHandler(refreshTokenUseCase)
 	getUserHandler := handler.NewGetUserHandler(getUserUseCase)
 	updateUserHandler := handler.NewUpdateUserHandler(updateUserUseCase)
 	deleteUserHandler := handler.NewDeleteUserHandler(deleteUserUseCase)
 
-	// api prefix
+	// health check
+	router.HandleFunc("/health-check", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{"ok": true}`))
+	}).Methods(http.MethodGet)
+
+	// api v1
 	v1 := router.PathPrefix("/api/v1").Subrouter()
+
+	// public routes
 	users := v1.PathPrefix("/users").Subrouter()
-
-	// routes V1
-	users.Handle(
-		"",
-		middlewares.ValidateRequestBody[dto.CreateUserRequest](validator, ut)(
-			http.HandlerFunc(createUserHandler.Execute),
-		),
-	).Methods(http.MethodPost, http.MethodOptions)
-
-	users.HandleFunc("", listUserHandler.Execute).Methods(http.MethodGet, http.MethodOptions)
-
-	users.HandleFunc("/{id}", getUserHandler.Execute).Methods(http.MethodGet, http.MethodOptions)
-
-	users.Handle(
-		"/{id}",
-		middlewares.ValidateRequestBody[dto.UpdateUserRequest](validator, ut)(
-			http.HandlerFunc(updateUserHandler.Execute),
-		),
-	).Methods(http.MethodPut, http.MethodOptions)
-
-	users.HandleFunc("/{id}", deleteUserHandler.Execute).Methods(http.MethodDelete, http.MethodOptions)
 
 	users.Handle(
 		"/login",
 		middlewares.ValidateRequestBody[dto.LoginUserRequest](validator, ut)(
 			http.HandlerFunc(loginUserHandler.Execute),
 		),
-	).Methods(http.MethodPost, http.MethodOptions)
+	).Methods(http.MethodPost)
 
 	users.Handle(
 		"/refresh-token",
 		middlewares.ValidateRequestBody[dto.RefreshTokenUserDTO](validator, ut)(
-			http.HandlerFunc(refreshTokenUserHandler.Execute),
+			http.HandlerFunc(refreshTokenHandler.Execute),
 		),
-	).Methods(http.MethodPost, http.MethodOptions)
+	).Methods(http.MethodPost)
+
+	// protected routes
+	privateUsers := v1.PathPrefix("/users").Subrouter()
+	privateUsers.Use(middlewares.Auth)
+
+	privateUsers.Handle(
+		"",
+		middlewares.ValidateRequestBody[dto.CreateUserRequest](validator, ut)(
+			http.HandlerFunc(createUserHandler.Execute),
+		),
+	).Methods(http.MethodPost)
+
+	privateUsers.HandleFunc(
+		"",
+		listUserHandler.Execute,
+	).Methods(http.MethodGet)
+
+	privateUsers.HandleFunc(
+		"/{id}",
+		getUserHandler.Execute,
+	).Methods(http.MethodGet)
+
+	privateUsers.Handle(
+		"/{id}",
+		middlewares.ValidateRequestBody[dto.UpdateUserRequest](validator, ut)(
+			http.HandlerFunc(updateUserHandler.Execute),
+		),
+	).Methods(http.MethodPut)
+
+	privateUsers.HandleFunc(
+		"/{id}",
+		deleteUserHandler.Execute,
+	).Methods(http.MethodDelete)
+
 	return router
 }
 
